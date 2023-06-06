@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ikido-classifier
+  namespace: ikido-classifier
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+spec:
+  type: LoadBalancer
+  selector:
+    app: ikido_classifier
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+#    - name: https
+#      port: 443
+#      targetPort: 8080

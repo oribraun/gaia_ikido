@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ikido-classifier
+  namespace: ikido-classifier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ikido_classifier
+  template:
+    metadata:
+      labels:
+        app: ikido_classifier
+    spec:
+      containers:
+        - name: ikido-classifier
+          image: IMAGE_PLACEHOLDER
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENV
+              value: "stg"
+#          resources:
+#            limits:
+#              cpu: "4"
+#              memory: "12Gi"
+#              nvidia.com/gpu: "1"
+#  autoscaling:
+#    minReplicas: 1
+#    maxReplicas: 5
+#    targetCPUUtilizationPercentage: 80

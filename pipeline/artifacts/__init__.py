@@ -1,0 +1,1 @@
+from .shared_artifacts import IkidoClassifierSharedArtifacts

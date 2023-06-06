@@ -1,0 +1,6 @@
+[core]
+    no_scm = True
+    analytics = false
+    remote = ds-ml-artifacts
+['remote "ds-ml-artifacts"']
+    url = s3://gaia-stg-apps-ds-ml-artifacts/ikido_classifier
