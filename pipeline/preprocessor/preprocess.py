@@ -135,13 +135,16 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
             results = {
                 'page_count': None,
                 'words_count': None,
+                'images_count': 0,
+                'tables_count': None,
                 'full_text': ''
             }
             pdf_datasheet_url = d.pdf_datasheet_url
             pdf_datasheet_text = d.pdf_datasheet_text
             if pdf_datasheet_url:
-                # tables = tabula.read_pdf(pdf_datasheet_url, pages=2, multiple_tables=True)
+                tables = tabula.read_pdf(pdf_datasheet_url, pages='all', multiple_tables=True)
                 results = self.extract_text_from_pdf_url(pdf_datasheet_url, self.artifacts.pdf_words)
+                results['tables_count'] = len(tables)
             if results['full_text']:
                 pdf_datasheet_text = results['full_text']
             features = self.extract_features(results)
@@ -185,9 +188,11 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
         # Extract text from each page of the PDF
         extracted_text = []
         word_count = 0
+        images_count = 0
         results = {
             'page_count': 0,
             'words_count': 0,
+            'images_count': 0,
             'full_text': ''
         }
         for page_num in range(len(pdf_reader.pages)):
@@ -195,6 +200,8 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
             if n and word_count >= n:
                 break
             page = pdf_reader.pages[page_num]
+            images = page.images
+            results['images_count'] += len(images)
             page_text = page.extract_text()
             words = page_text.split()
             for word in words:
@@ -202,7 +209,7 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
                 word_count += 1
                 results['words_count'] = word_count
 
-                if word_count >= n:
+                if n and word_count >= n:
                     break
 
         results['full_text'] = ' '.join(extracted_text[:n])
@@ -308,6 +315,8 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
         features['clean_text'] = clean_text
         features['page_count'] = results['page_count']
         features['words_count'] = results['words_count']
+        features['tables_count'] = results['tables_count']
+        features['images_count'] = results['images_count']
         # print('self.preprocess_config', self.preprocess_config)
         print('clean_text', clean_text)
         return features

@@ -1,5 +1,5 @@
 gaiaframework==1.0.18
 nltk==3.8.1
-PyPDF2==3.0.1
+PyPDF2[image]==3.0.1
 transformers==4.29.2
 xformers==0.0.20
