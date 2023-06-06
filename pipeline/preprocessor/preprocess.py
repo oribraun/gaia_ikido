@@ -7,6 +7,7 @@ import string
 import PyPDF2
 import requests
 import tabula
+import json
 
 from typing import List, Any
 
@@ -149,7 +150,7 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
                 pdf_datasheet_text = results['full_text']
             features = self.extract_features(results)
             features_results.append(features)
-            print('features_results', features_results)
+            print('features_results', json.dumps(features_results, indent=2))
             clean_text = self.clean_text(pdf_datasheet_text)
             clean_text_results.append(clean_text)
 
