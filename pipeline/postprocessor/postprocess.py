@@ -93,6 +93,7 @@ class IkidoClassifierPostprocess(DS_Postprocessor):
         #         final_text += ' '
         #     results.add_item(json.dumps({"text": final_text}))
         # return results
-
-        raise NotImplementedError
+        score = predictable['score']
+        label = predictable['label']
+        return IkidoClassifierOutputs(score=score, label=label, version=self.artifacts.version)
 

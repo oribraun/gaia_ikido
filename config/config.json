@@ -1,12 +1,13 @@
 {
   "version": "1.0.0",
   "baseDir": "ikido_classifier",
+  "pdf_words": 750,
   "types": ["json", "csv", "pickle", "tensorflow"],
   "vocabs": [
     {"name":"" ,"path": "", "type": ""}
   ],
   "artifacts": [
-    {"name":"" ,"path": "", "type": ""}
+    {"name":"classifier" ,"path": "pipeline/artifacts/models/component_categorization", "type": "text-classification"}
   ],
   "threshold": 0.5
 }

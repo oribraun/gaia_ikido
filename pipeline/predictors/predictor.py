@@ -60,6 +60,8 @@ class IkidoClassifierPredictor(DS_Component):
         #
         #         probas = list(tf.nn.softmax(bert_output.logits).numpy())
         #         return probas
-        # @endcode
-
-        return predictables
+        # @endcodes
+        print('predictables', predictables)
+        prediction = self.artifacts.classifier.predict(predictables)
+        # print('prediction', prediction)
+        return prediction

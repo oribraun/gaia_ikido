@@ -5,4 +5,6 @@ from pydantic.main import BaseModel
 
 
 class IkidoClassifierOutputs(BaseModel):
-    pass
+    label: str
+    score: float
+    version: str
