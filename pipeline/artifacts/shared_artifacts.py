@@ -4,7 +4,7 @@
 import json
 from gaiaframework.base.pipeline.artifacts.shared_artifacts import DS_SharedArtifacts
 
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+# from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from transformers import TextClassificationPipeline, pipeline
 import time
 

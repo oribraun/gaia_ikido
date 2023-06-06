@@ -2,6 +2,18 @@
   "version": "1.0.0",
   "baseDir": "ikido_classifier",
   "pdf_words": 750,
+  "preprocess_config": {
+    "clean_text": "lowercase_no_punc",
+    "page_count": true,
+    "class_number_keywords_count": true,
+    "none_class_keywords_count": true,
+    "total_class_keywords_count": true,
+    "words_count": true,
+    "vendors_keywords_count": true,
+    "resistors_patterns_count": true,
+    "photos_count": true,
+    "tables_count": true
+  },
   "types": ["json", "csv", "pickle", "tensorflow"],
   "vocabs": [
     {"name":"" ,"path": "", "type": ""}

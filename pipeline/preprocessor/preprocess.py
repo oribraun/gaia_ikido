@@ -6,11 +6,11 @@ import re
 import string
 import PyPDF2
 import requests
+import tabula
 
 from typing import List, Any
 
 from gaiaframework.base.pipeline.preprocessor import DS_Preprocessor
-from ..schema.inputs import IkidoClassifierInputs, IkidoClassifierInput
 from ..schema.inputs import IkidoClassifierInput, IkidoClassifierInputs
 from ..schema.outputs import IkidoClassifierOutputs
 from ..artifacts.shared_artifacts import IkidoClassifierSharedArtifacts
@@ -130,11 +130,23 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
 
     def preprocess(self, raw_input: Any):
         clean_text_results = []
+        features_results = []
         for d in raw_input.inputs:
+            results = {
+                'page_count': None,
+                'words_count': None,
+                'full_text': ''
+            }
             pdf_datasheet_url = d.pdf_datasheet_url
             pdf_datasheet_text = d.pdf_datasheet_text
             if pdf_datasheet_url:
-                pdf_datasheet_text = self.extract_text_from_pdf_url(pdf_datasheet_url, self.artifacts.pdf_words)
+                # tables = tabula.read_pdf(pdf_datasheet_url, pages=2, multiple_tables=True)
+                results = self.extract_text_from_pdf_url(pdf_datasheet_url, self.artifacts.pdf_words)
+            if results['full_text']:
+                pdf_datasheet_text = results['full_text']
+            features = self.extract_features(results)
+            features_results.append(features)
+            print('features_results', features_results)
             clean_text = self.clean_text(pdf_datasheet_text)
             clean_text_results.append(clean_text)
 
@@ -173,7 +185,13 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
         # Extract text from each page of the PDF
         extracted_text = []
         word_count = 0
+        results = {
+            'page_count': 0,
+            'words_count': 0,
+            'full_text': ''
+        }
         for page_num in range(len(pdf_reader.pages)):
+            results['page_count'] = page_num
             if n and word_count >= n:
                 break
             page = pdf_reader.pages[page_num]
@@ -182,11 +200,13 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
             for word in words:
                 extracted_text.append(word)
                 word_count += 1
+                results['words_count'] = word_count
 
                 if word_count >= n:
                     break
 
-        return ' '.join(extracted_text[:n])
+        results['full_text'] = ' '.join(extracted_text[:n])
+        return results
 
     def edit_line(self, text):
         text = text.lower().strip()
@@ -277,6 +297,20 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
         lines = [self.remove_non_printable_chars(self.remove_numbers(self.remove_urls(self.edit_line(l)))) for l in lines]
         text_cleaned = ' '.join([self.remove_token(t) for t in ' '.join(lines).split()]).strip()
         return text_cleaned
+
+    def extract_features(self, results):
+        features = {}
+        clean_text = results['full_text']
+        # if self.preprocess_config.clean_text == 'lowercase':
+        #     clean_text = clean_text.lower()
+        # elif self.preprocess_config.clean_text == 'lowercase_no_punc':
+        #     clean_text = clean_text.lower().translate(str.maketrans('', '', string.punctuation))
+        features['clean_text'] = clean_text
+        features['page_count'] = results['page_count']
+        features['words_count'] = results['words_count']
+        # print('self.preprocess_config', self.preprocess_config)
+        print('clean_text', clean_text)
+        return features
 
 class RegexHandler():
     # build a table mapping all non-printable characters to None

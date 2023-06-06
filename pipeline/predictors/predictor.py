@@ -61,6 +61,26 @@ class IkidoClassifierPredictor(DS_Component):
         #         probas = list(tf.nn.softmax(bert_output.logits).numpy())
         #         return probas
         # @endcodes
-        prediction = self.artifacts.classifier.predict(predictables)
-        # print('prediction', prediction)
-        return prediction
+        n = 300  # group size
+        m = 50  # overlap size
+        results = []
+        for p in predictables:
+            tokens = p.split()
+            splitted = [' '.join(tokens[i:i + n]) for i in range(0, len(tokens), n - m)]
+            ret = self.artifacts.classifier(splitted, top_k=None)
+            max_score = 0
+            label = ''
+            best_item = None
+            for item in ret:
+                for categ in item:
+                    if max_score >= 0.99:
+                        break
+                    if categ['score'] > max_score:
+                        label = categ['label']
+                        max_score = categ['score']
+                        best_item = item
+            r = {}
+            r['label'] = label
+            r['score'] = max_score
+            results.append(r)
+        return results
