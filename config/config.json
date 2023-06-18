@@ -2,21 +2,13 @@
   "version": "1.0.0",
   "baseDir": "ikido_classifier",
   "pdf_words": 750,
-  "preprocess_config": {
-    "clean_text": "lowercase_no_punc",
-    "page_count": true,
-    "class_number_keywords_count": true,
-    "none_class_keywords_count": true,
-    "total_class_keywords_count": true,
-    "words_count": true,
-    "vendors_keywords_count": true,
-    "resistors_patterns_count": true,
-    "photos_count": true,
-    "tables_count": true
+  "pdf_processor_cfg": {
+    "extract_tables_from_pdf": false
   },
   "types": ["json", "csv", "pickle", "tensorflow"],
   "vocabs": [
-    {"name":"" ,"path": "", "type": ""}
+    {"name":"class_keywords" ,"path": "pipeline/artifacts/vocabs/class_keywords.json", "type": "json"},
+    {"name":"negative_tokens" ,"path": "pipeline/artifacts/vocabs/negative_tokens.json", "type": "json"}
   ],
   "artifacts": [
     {"name":"classifier" ,"path": "pipeline/artifacts/models/component_categorization", "type": "text-classification"}
