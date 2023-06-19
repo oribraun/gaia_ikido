@@ -76,7 +76,7 @@ class PrepDataForTrainer:
             logger.info('remove_duplicate', {"df": df})
         return df
 
-    def run_preprocess(self, df, steps=None, stop=None):
+    def run_preprocess(self, df, steps=None, stop=None, cache_file_name='cache_train.csv'):
         all_datasheet = df['datasheet'].to_list()
         d = [{'pdf_datasheet_url': k} for k in all_datasheet]
         pipeline = IkidoClassifierPipeline()
@@ -95,6 +95,8 @@ class PrepDataForTrainer:
             inputs = IkidoClassifierInputs(inputs=chunk)
             predictables = pipeline.preprocessor.preprocess(raw_input=inputs)
             for j, p in enumerate(predictables):
+                if i + j % 10 == 0:
+                    self.save_df(train_df, f'./trainer/output/{cache_file_name}.csv')
                 if self.debug:
                     logger.info('run_pipeline', {"count": i + j})
                 if features == None:
