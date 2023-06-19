@@ -112,7 +112,7 @@ class PrepDataForTrainer:
                     row.append(p.features.__dict__[f])
                 train_df.loc[len(train_df)] = row
                 if count % 10 == 0:
-                    self.save_df(train_df, f'{self.output_folder}/{cache_file_name}.csv')
+                    self.save_df(train_df, f'{self.output_folder}/{cache_file_name}')
             if self.debug:
                 logger.info('run_pipeline', {"train_df": train_df})
         return train_df
