@@ -12,15 +12,18 @@ class PrepDataForTrainer:
     debug=False
     allow_files = ['.csv', '.xlsx']
     data_folder = './trainer/data'
+    output_folder = './trainer/output'
     base_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
     mandatory_columns: list = []
     potential_columns: list = []
     remove_duplicate_columns: list = []
-    def __init__(self, allow_files=None, data_folder=None, mandatory_columns=[], potential_columns=[], remove_duplicate_columns=[], debug=False):
+    def __init__(self, allow_files=None, data_folder=None, output_folder=None, mandatory_columns=[], potential_columns=[], remove_duplicate_columns=[], debug=False):
         if allow_files:
             self.allow_files = allow_files
         if data_folder:
             self.data_folder = data_folder
+        if output_folder:
+            self.output_folder = output_folder
         self.mandatory_columns = mandatory_columns
         self.potential_columns = potential_columns
         self.remove_duplicate_columns = remove_duplicate_columns
@@ -95,10 +98,9 @@ class PrepDataForTrainer:
             inputs = IkidoClassifierInputs(inputs=chunk)
             predictables = pipeline.preprocessor.preprocess(raw_input=inputs)
             for j, p in enumerate(predictables):
-                if i + j % 10 == 0:
-                    self.save_df(train_df, f'./trainer/output/{cache_file_name}.csv')
+                count = i + j
                 if self.debug:
-                    logger.info('run_pipeline', {"count": i + j})
+                    logger.info('run_pipeline', {"count": count})
                 if features == None:
                     features = list(p.features.__dict__.keys())
                     columns = list(df.columns)
@@ -109,6 +111,8 @@ class PrepDataForTrainer:
                 for f in features:
                     row.append(p.features.__dict__[f])
                 train_df.loc[len(train_df)] = row
+                if count % 10 == 0:
+                    self.save_df(train_df, f'{self.output_folder}{cache_file_name}.csv')
             if self.debug:
                 logger.info('run_pipeline', {"train_df": train_df})
         return train_df
