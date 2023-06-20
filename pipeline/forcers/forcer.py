@@ -1,4 +1,5 @@
 from gaiaframework.base.common.component import DS_Component
+from gaiaframework.base.common.output_logger import OutputLogger
 
 ##
 # @file

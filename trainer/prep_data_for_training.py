@@ -2,11 +2,11 @@ import pandas as pd
 import os
 import json
 
-from gaiaframework.base.server.output_logger import OutputLogger
 from pipeline.pipeline import IkidoClassifierPipeline
 from pipeline.schema import IkidoClassifierInputs
 
-logger = OutputLogger('prep_data_for_training')
+from common.output_logger import OutputLogger
+logger = OutputLogger('prep_data_for_training info', log_level='INFO')
 
 class PrepDataForTrainer:
     debug=False
@@ -79,7 +79,7 @@ class PrepDataForTrainer:
             logger.info('remove_duplicate', {"df": df})
         return df
 
-    def run_preprocess(self, df, steps=None, stop=None, cache_file_name='cache_train.csv'):
+    def run_preprocess(self, df, steps=None, stop=None, start_from=None, cache_file_name='cache_train.csv'):
         all_datasheet = df['datasheet'].to_list()
         d = [{'pdf_datasheet_url': k} for k in all_datasheet]
         pipeline = IkidoClassifierPipeline()
@@ -87,15 +87,19 @@ class PrepDataForTrainer:
             steps = 5
         if stop == None:
             stop = len(d)
+        if start_from == None:
+            start_from = 0
         columns = None
         features = None
         train_df = None
-        for i in range(0, len(d), steps):
+        for i in range(start_from, len(d), steps):
             if i >= stop:
                 break
             delta = steps if i + steps < len(d) else len(d)
             chunk = d[i:i + delta]
             inputs = IkidoClassifierInputs(inputs=chunk)
+            if self.debug:
+                logger.info('run_pipeline', {"inputs": inputs})
             predictables = pipeline.preprocessor.preprocess(raw_input=inputs)
             for j, p in enumerate(predictables):
                 count = i + j

@@ -1,11 +1,15 @@
 from typing import List, Any
 from gaiaframework.base.common.component import DS_Component
+from gaiaframework.base.common.output_logger import OutputLogger
 from ..predictables.predictable import IkidoClassifierPredictable 
 
 class IkidoClassifierPredictor(DS_Component):
 
     def __init__(self, artifacts=None) -> None:
         super().__init__(artifacts)
+        self.logger = OutputLogger('IkidoClassifierPredictor', log_level='INFO')
+        if self.artifacts.log_level:
+            self.logger.set_log_level(self.artifacts.log_level)
         self.component_type_classifier = self.artifacts.classifier
         # self.pdf_datasheet_classifier = self.artifacts.datashhet_classifier
 

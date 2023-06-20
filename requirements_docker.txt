@@ -1,4 +1,4 @@
-gaiaframework==1.0.18
+gaiaframework==1.0.19
 nltk==3.8.1
 #'PyPDF2[image]'==3.0.1
 transformers==4.29.2

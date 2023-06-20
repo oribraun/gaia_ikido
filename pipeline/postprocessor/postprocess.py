@@ -5,8 +5,9 @@
 # @file
 # @brief Postprocessor class, implemented DS_Postprocessor base.
 
-from gaiaframework.base.pipeline.predictables.predictable import DS_Predictable
 from typing import List, Union
+from gaiaframework.base.pipeline.predictables.predictable import DS_Predictable
+from gaiaframework.base.common.output_logger import OutputLogger
 
 from gaiaframework.base.pipeline.postprocessor import DS_Postprocessor
 from ..artifacts.shared_artifacts import IkidoClassifierSharedArtifacts
@@ -17,6 +18,9 @@ class IkidoClassifierPostprocess(DS_Postprocessor):
 
     def __init__(self, artifacts: IkidoClassifierSharedArtifacts=None) -> None:
         super().__init__(artifacts)
+        self.logger = OutputLogger('IkidoClassifierPostprocess', log_level='INFO')
+        if self.artifacts.log_level:
+            self.logger.set_log_level(self.artifacts.log_level)
 
    
     def normalize_output(self, predictables: Union[DS_Predictable, List[DS_Predictable]]) -> Union[IkidoClassifierOutputs, List[IkidoClassifierOutputs]]:

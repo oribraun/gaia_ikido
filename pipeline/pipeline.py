@@ -5,6 +5,7 @@ __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 from gaiaframework.base.pipeline.pipeline import DS_Pipeline
+from gaiaframework.base.common.output_logger import OutputLogger
 
 from .preprocessor.preprocess import IkidoClassifierPreprocess
 from .postprocessor.postprocess import IkidoClassifierPostprocess

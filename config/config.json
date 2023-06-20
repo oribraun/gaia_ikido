@@ -1,6 +1,7 @@
 {
   "version": "1.0.0",
   "baseDir": "ikido_classifier",
+  "log_level": "DEBUG",
   "pdf_words": 750,
   "pdf_processor_cfg": {
     "extract_tables_from_pdf": false
