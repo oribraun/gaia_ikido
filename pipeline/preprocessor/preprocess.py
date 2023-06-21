@@ -50,10 +50,12 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
                 text = input_item.pdf_datasheet_text
 
             # Text cleanup and normalization
-            self.logger.debug('start features_extractor', {'text': text})
+            self.logger.debug('start text_cleaner', {'len_text': len(text)})
             self.text_cleaner(text)
-            self.features_extractor(pdf_processor = self.pdf_processor, text_cleaner = self.text_cleaner)
+            self.logger.debug('end text_cleaner', {'len_text': len(text)})
+            self.logger.debug('start features_extractor', {'len_text': len(text)})
+            self.features_extractor(pdf_processor=self.pdf_processor, text_cleaner=self.text_cleaner)
+            self.logger.debug('ed features_extractor', {'len_text': len(text)})
             self.predictables.append(IkidoClassifierPredictable(self.features_extractor.features, artifacts=self.artifacts))
-            self.logger.debug('end features_extractor', {'text': text})
  
         return self.predictables
