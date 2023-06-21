@@ -1,4 +1,5 @@
 from gaiaframework.base.common.object import DS_Object
+from gaiaframework.base.common.output_logger import OutputLogger
 from ..artifacts.shared_artifacts import IkidoClassifierSharedArtifacts
 
 import requests, io
@@ -8,6 +9,9 @@ import tabula
 class IkidoPdfProcessor(DS_Object):
     def __init__(self, artifacts: IkidoClassifierSharedArtifacts=None):
         super().__init__()
+        self.logger = OutputLogger('IkidoPdfProcessor', log_level='INFO')
+        if artifacts.log_level:
+            self.logger.set_log_level(artifacts.log_level)
         self.artifacts = artifacts
         self.cfg = self.artifacts.get('pdf_processor_cfg', {})
         self.reset()
@@ -35,25 +39,36 @@ class IkidoPdfProcessor(DS_Object):
         self.reset()
         self.url = url
         try:
+            self.logger.debug('start get request')
             request = requests.get(url)
+            self.logger.debug('start end request')
             filestream = io.BytesIO(request.content)
             with fitz.open(stream=filestream, filetype="pdf") as doc:  # open document
                 self.doc = doc
+                self.logger.debug('start get get_toc')
                 self.table_of_content = doc.get_toc()
+                self.logger.debug('end get get_toc')
                 self.number_of_pages  = doc.page_count
                 self.meta_data = doc.metadata
+                self.logger.debug('start get get_text')
                 self.text = chr(12).join([page.get_text().encode("utf8").decode("utf8")  for page in doc])
+                self.logger.debug('end get get_text')
                 self.image_list = []
-                for page in doc:
-                    image_list=page.get_images()
-                    for img in image_list:
-                        xref = img[0] # get the XREF of the image
-                        pix = fitz.Pixmap(doc, xref) # create a Pixmap
-                        if pix.n - pix.alpha > 3: # CMYK: convert to RGB first
-                            pix = fitz.Pixmap(fitz.csRGB, pix)
-                        self.image_list.append(pix)
+                if self.cfg.get('extract_images_from_pdf', False):
+                    self.logger.debug('start get images')
+                    for page in doc:
+                        image_list=page.get_images()
+                        for img in image_list:
+                            xref = img[0] # get the XREF of the image
+                            pix = fitz.Pixmap(doc, xref) # create a Pixmap
+                            if pix.n - pix.alpha > 3: # CMYK: convert to RGB first
+                                pix = fitz.Pixmap(fitz.csRGB, pix)
+                            self.image_list.append(pix)
+                    self.logger.debug('end get images')
             if self.cfg.get('extract_tables_from_pdf', False):
+                self.logger.debug('start get table_list')
                 self.table_list = tabula.read_pdf(url, pages='all', multiple_tables=True, stream=True)
+                self.logger.debug('end get table_list')
 
         except  Exception as e:
             self.error_message = f'Error Loading PDF file from : {url}'

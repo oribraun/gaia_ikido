@@ -4,7 +4,8 @@
   "log_level": "DEBUG",
   "pdf_words": 750,
   "pdf_processor_cfg": {
-    "extract_tables_from_pdf": false
+    "extract_tables_from_pdf": false,
+    "extract_images_from_pdf": false
   },
   "types": ["json", "csv", "pickle", "tensorflow"],
   "vocabs": [
