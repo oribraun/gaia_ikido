@@ -36,7 +36,7 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
             d) Convert the raw input into a list of predictable objects
         '''
 
-        self.predictables = []
+        predictables = []
 
         for input_item in raw_input.inputs:
             # PDF Manipulation to retreive text + other pdf items (tables/images/metadata/table of content ....)
@@ -56,6 +56,7 @@ class IkidoClassifierPreprocess(DS_Preprocessor):
             self.logger.debug('start features_extractor', {'len_text': len(text)})
             self.features_extractor(pdf_processor=self.pdf_processor, text_cleaner=self.text_cleaner)
             self.logger.debug('end features_extractor', {'len_text': len(text)})
-            self.predictables.append(IkidoClassifierPredictable(self.features_extractor.features, artifacts=self.artifacts))
- 
-        return self.predictables
+            predictables.append(IkidoClassifierPredictable(self.features_extractor.features, artifacts=self.artifacts))
+            self.logger.debug('len predictables', {'pred_len': len(predictables)})
+
+        return predictables
