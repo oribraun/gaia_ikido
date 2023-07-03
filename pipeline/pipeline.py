@@ -59,13 +59,13 @@ class IkidoClassifierPipeline(DS_Pipeline):
         ## Instantiate preprocessor - Automatically added to the pipeline
         self.preprocessor = IkidoClassifierPreprocess(artifacts=self.artifacts)
 
+         ## Instantiate and add forcer to the pipeline
+        self.forcer = IkidoClassifierForcer(artifacts=self.artifacts)
+        self.add_component(self.forcer)
+
         ## Instantiate and add predictor to the pipeline
         self.predictor = IkidoClassifierPredictor(artifacts=self.artifacts)
         self.add_component(self.predictor)
-
-        ## Instantiate and add forcer to the pipeline
-        self.forcer = IkidoClassifierForcer(artifacts=self.artifacts)
-        self.add_component(self.forcer)
 
         ## Instantiate postprocessor - Automatically added to the pipeline
         self.postprocessor = IkidoClassifierPostprocess(artifacts=self.artifacts)

@@ -44,14 +44,15 @@ class IkidoPdfProcessor(DS_Object):
                 self.meta_data = doc.metadata
                 self.text = chr(12).join([page.get_text().encode("utf8").decode("utf8")  for page in doc])
                 self.image_list = []
-                for page in doc:
-                    image_list=page.get_images()
-                    for img in image_list:
-                        xref = img[0] # get the XREF of the image
-                        pix = fitz.Pixmap(doc, xref) # create a Pixmap
-                        if pix.n - pix.alpha > 3: # CMYK: convert to RGB first
-                            pix = fitz.Pixmap(fitz.csRGB, pix)
-                        self.image_list.append(pix)
+                if self.cfg.get('extract_images_from_pdf', False):
+                    for page in doc:
+                        image_list=page.get_images()
+                        for img in image_list:
+                            xref = img[0] # get the XREF of the image
+                            pix = fitz.Pixmap(doc, xref) # create a Pixmap
+                            if pix.n - pix.alpha > 3: # CMYK: convert to RGB first
+                                pix = fitz.Pixmap(fitz.csRGB, pix)
+                            self.image_list.append(pix)
             if self.cfg.get('extract_tables_from_pdf', False):
                 self.table_list = tabula.read_pdf(url, pages='all', multiple_tables=True, stream=True)
 
