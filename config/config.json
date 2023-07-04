@@ -19,7 +19,7 @@
     {"name":"negative_tokens" ,"path": "pipeline/artifacts/vocabs/negative_tokens.json", "type": "json"}
   ],
   "artifacts": [
-    {"name":"classifier" ,"path": "pipeline/artifacts/models/component_categorization", "type": "text-classification"},
+    {"name":"classifier" ,"path": "pipeline/artifacts/models/component_categorization/deberta_v2_only_components_v0", "type": "text-classification"},
     {"name":"classifier_non_datasheet_supported" ,"path": "pipeline/artifacts/models/component_categorization/deberta_v2_non_datasheet_supported", "type": "text-classification"}
   ],
   "threshold": 0.5

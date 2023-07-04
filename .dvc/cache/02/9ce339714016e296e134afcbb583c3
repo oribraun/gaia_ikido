@@ -1,0 +1,19 @@
+{
+    "Capacitors": ["capacitance",  "dielectric", "ESR", "ESL", "μF", "pF", "nF", "µF", "mF ", "uF "],
+    "Resistors": ["resistance",  "power rating", "package type", "Ω", "Ohm ", "kΩ", "MΩ", "GΩ"],
+    "Inductors": ["inductance",  "Q factor", "SRF", "mH", "µH", "uH "],
+    "Diodes": ["forward voltage", "reverse voltage", "reverse recovery time", "mA "],
+    "Transistors": ["current gain",  "transition frequency", "package type"],
+    "Integrated Circuits (ICs)": ["part number", "pin configuration", "supply voltage", "package type"],
+    "Connectors": ["number of pins", "pin spacing",   "termination type"],
+    "Switches": ["switching type", "number of poles",  "voltage rating"],
+    "Relays": ["coil voltage", "contact rating", "contact configuration"],
+    "Optoelectronic Components (LEDs, Photodiodes, etc.)": ["wavelength", "forward voltage", "radiant intensity"],
+    "Sensors": ["sensing range", "accuracy", "output type"],
+    "Voltage Regulators": [ "dropout voltage", "load regulation", "line regulation"],
+    "Oscillators": ["frequency range", "output waveform", "frequency stability"],
+    "Filters": ["cutoff frequency", "attenuation", "passband ripple", "stopband rejection"],
+    "Amplifiers": ["gain", "input impedance", "output impedance", "bandwidth"],
+    "Power Supplies": [ "output current", "efficiency", "protections"],
+    "Displays": ["display size", "resolution", "brightness", "viewing angle", "lcd", "oled"]
+}
