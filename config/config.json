@@ -6,6 +6,13 @@
     "extract_tables_from_pdf": false,
     "extract_images_from_pdf": false
   },
+  "postprocessor_cfg":{
+    "threshold":0.99
+  },
+  "forcer_cfg":{
+    "n_tokens_min_thr" : 100,
+    "n_numbers_min_thr" : 15
+  },
   "types": ["json", "csv", "pickle", "tensorflow"],
   "vocabs": [
     {"name":"class_keywords" ,"path": "pipeline/artifacts/vocabs/class_keywords.json", "type": "json"},

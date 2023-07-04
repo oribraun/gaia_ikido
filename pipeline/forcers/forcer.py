@@ -5,17 +5,18 @@ from typing import List, Any
 class IkidoClassifierForcer(DS_Component):
     def __init__(self, artifacts=None) -> None:
         super().__init__(artifacts)
+        self.cfg = self.artifacts.get('forcer_cfg', {})
 
 
     def execute(self, predictables: List[IkidoClassifierPredictable], **kwargs) -> List[Any]:
-        n_tokens_min_thr = 100
-        n_numbers_min_thr = 15
+        n_tokens_min_thr = self.cfg.get('n_tokens_min_thr', 100)
+        n_numbers_min_thr = self.cfg.get('n_numbers_min_thr', 15) 
 
         for predictable in predictables:
             features = predictable.features
             # Rule - if n_tokens < Thr
             if features.n_tokens < n_tokens_min_thr:
-                predictable.forced_pred = 'Non Datasheet'
+                predictable.forced_pred = 'Not Sure'
                 predictable.forced_reason = f'Number of tokens is too low ({features.n_tokens}) < ({n_tokens_min_thr})'
                 continue
 

@@ -136,7 +136,10 @@ dmypy.json
 !/pipeline/artifacts/models/*.dvc
 /pipeline/artifacts/vocabs/*
 !/pipeline/artifacts/vocabs/*.dvc
+/trainer/data/*
+/notebooks/playground/*
+
 
 # Dont Git the google credentials - foolproofing
 gcloud_credentials.json
-
+.DS_Store

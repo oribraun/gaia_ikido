@@ -17,6 +17,7 @@ class IkidoClassifierPostprocess(DS_Postprocessor):
 
     def __init__(self, artifacts: IkidoClassifierSharedArtifacts=None) -> None:
         super().__init__(artifacts)
+        self.cfg = self.artifacts.get('postprocessor_cfg', {})
 
    
     def normalize_output(self, predictables: Union[DS_Predictable, List[DS_Predictable]]) -> Union[IkidoClassifierOutputs, List[IkidoClassifierOutputs]]:
@@ -33,8 +34,21 @@ class IkidoClassifierPostprocess(DS_Postprocessor):
             output = self.get_output_object(predictables)
         return output
 
-    def get_output_object(self, predictable):
+    def threshold_based_modifications(self, predictable):
+        threshold = self.cfg.get('threshold', 0.5)
         score = predictable.category_score
-        label = predictable.category_label
-        return IkidoClassifierOutputs(score=score, label=label, version=self.artifacts.version)
+        if score != -1 and score < threshold:
+            predictable.forced_pred = 'Not Sure'
+            predictable.forced_reason = f'prediction score is {score} < predefined threshold ({threshold})'
+
+    def get_output_object(self, predictable):
+        self.threshold_based_modifications(predictable)
+
+        forced = predictable.forced_pred != None
+        score = predictable.category_score
+        label = predictable.category_label if not forced else predictable.forced_pred
+        predictor_label = predictable.category_label
+        forced_reason = predictable.forced_reason
+        
+        return IkidoClassifierOutputs(score=score, label=label, version=self.artifacts.version, predictor_label=predictor_label, forced = forced, forced_reason=forced_reason).json()
 
