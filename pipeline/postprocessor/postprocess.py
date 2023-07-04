@@ -14,34 +14,13 @@ from ..schema.outputs import IkidoClassifierOutputs
 
 
 class IkidoClassifierPostprocess(DS_Postprocessor):
-    """IkidoClassifierPostprocess class (Postprocessor) implements DS_Postprocessor base class.
-    It is the last stage of the pipeline, its main focus is to return the results in the required format.
-    """
 
     def __init__(self, artifacts: IkidoClassifierSharedArtifacts=None) -> None:
-        """! IkidoClassifierPostprocess class (Postprocessor) initializer
-
-        Args:
-            artifacts(IkidoClassifierSharedArtifacts): Shared artifacts instance.
-        """
-
-        ##
-        # @hidecallgraph @hidecallergraph
         super().__init__(artifacts)
+        self.cfg = self.artifacts.get('postprocessor_cfg', {})
 
-    def config(self):
-        """Implement here configurations required on Preprocess stage. Overrides DS_Component.config()"""
-        pass
-
+   
     def normalize_output(self, predictables: Union[DS_Predictable, List[DS_Predictable]]) -> Union[IkidoClassifierOutputs, List[IkidoClassifierOutputs]]:
-        """! Converts received predictable objects to IkidoClassifierOutputs datatype.
-
-        Args:
-            predictables: List[DS_Predictable] - Predictable objects, the results from the model.
-
-        Returns:
-            IkidoClassifierOutputs: List[IkidoClassifierOutputs] - Results converted to Outputs format.
-        """
 
         output: IkidoClassifierOutputs = ''
         isList = isinstance(predictables, list)
@@ -55,45 +34,21 @@ class IkidoClassifierPostprocess(DS_Postprocessor):
             output = self.get_output_object(predictables)
         return output
 
+    def threshold_based_modifications(self, predictable):
+        threshold = self.cfg.get('threshold', 0.5)
+        score = predictable.category_score
+        if score != -1 and score < threshold:
+            predictable.forced_pred = 'Not Sure'
+            predictable.forced_reason = f'prediction score is {score} < predefined threshold ({threshold})'
+
     def get_output_object(self, predictable):
-        """! Parse a single predictable item, needs to be implemented.
+        self.threshold_based_modifications(predictable)
 
-        Args:
-            predictable: DS_Predictable - Single predictable object.
-
-        Returns:
-            IkidoClassifierOutputs: IkidoClassifierOutputs - Parsed results
-
-        Raises:
-            NotImplementedError
-
-        """
-
-        ##
-        # Implementation example:
-        # @code{.py}
-        # prob = predictable[-1]
-        # pred = False
-        #
-        # if prob > self.artifacts.threshold:
-        #     pred = True
-        # return IkidoClassifierOutputs(pred=pred, prob=prob, version=self.artifacts.version)
-        # @endcode
-
-        # for streaming chat
-        # from gaiaframework.base.common.async_iterator import AsyncIterator
-        # import json
-        # results = AsyncIterator()
-        # count = 0
-        # final_text = ''
-        # while count < 4:
-        #     final_text += f"test_{count}"
-        #     count += 1
-        #     if count < 4:
-        #         final_text += ' '
-        #     results.add_item(json.dumps({"text": final_text}))
-        # return results
-        score = predictable['score']
-        label = predictable['label']
-        return IkidoClassifierOutputs(score=score, label=label, version=self.artifacts.version)
+        forced = predictable.forced_pred != None
+        score = predictable.category_score
+        label = predictable.category_label if not forced else predictable.forced_pred
+        predictor_label = predictable.category_label
+        forced_reason = predictable.forced_reason
+        
+        return IkidoClassifierOutputs(score=score, label=label, version=self.artifacts.version, predictor_label=predictor_label, forced = forced, forced_reason=forced_reason).json()
 

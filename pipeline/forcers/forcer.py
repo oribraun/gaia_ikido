@@ -1,21 +1,35 @@
 from gaiaframework.base.common.component import DS_Component
+from ..predictables.predictable import IkidoClassifierPredictable 
+from typing import List, Any
 
-##
-# @file
-# @brief Forcer class, implements DS_Component base class.
 class IkidoClassifierForcer(DS_Component):
-    """! Forcer class, implements DS_Component base class.
-
-        This class was added with two main goals, to force results when:
-
-        1. If you know certain data doesn't need to go through the model and would like to force results.
-        2. Not satisfied by some results from the model and would like to force another result.
-
-        No examples yet.
-    """
     def __init__(self, artifacts=None) -> None:
-        """! IkidoClassifierForcer (Forcer) class initializer."""
-
-        ##
-        # @hidecallgraph @hidecallergraph
         super().__init__(artifacts)
+        self.cfg = self.artifacts.get('forcer_cfg', {})
+
+
+    def execute(self, predictables: List[IkidoClassifierPredictable], **kwargs) -> List[Any]:
+        n_tokens_min_thr = self.cfg.get('n_tokens_min_thr', 100)
+        n_numbers_min_thr = self.cfg.get('n_numbers_min_thr', 15) 
+
+        for predictable in predictables:
+            features = predictable.features
+            # Rule - if n_tokens < Thr
+            if features.n_tokens < n_tokens_min_thr:
+                predictable.forced_pred = 'Not Sure'
+                predictable.forced_reason = f'Number of tokens is too low ({features.n_tokens}) < ({n_tokens_min_thr})'
+                continue
+
+            # Rule - if there are no numbers
+            if features.n_numbers < n_numbers_min_thr:
+                predictable.forced_pred = 'Non Datasheet'
+                predictable.forced_reason = f'Not enough numbers ({features.n_numbers}) < ({n_numbers_min_thr})'
+                continue
+
+            # Rule - if the n_negative_keywords > number_of_pages (usually pcn is 1-2 pages and the number of negeative keywords is more than that)
+            if features.n_negative_keywords > features.number_of_pages and features.number_of_pages>0:
+                predictable.forced_pred = 'Non Datasheet'
+                predictable.forced_reason = f'More negative keywords than pages (NK = {features.n_negative_keywords}) > (P = {features.number_of_pages})'
+                continue
+            
+        return predictables

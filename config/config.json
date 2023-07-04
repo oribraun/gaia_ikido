@@ -2,24 +2,25 @@
   "version": "1.0.0",
   "baseDir": "ikido_classifier",
   "pdf_words": 750,
-  "preprocess_config": {
-    "clean_text": "lowercase_no_punc",
-    "page_count": true,
-    "class_number_keywords_count": true,
-    "none_class_keywords_count": true,
-    "total_class_keywords_count": true,
-    "words_count": true,
-    "vendors_keywords_count": true,
-    "resistors_patterns_count": true,
-    "photos_count": true,
-    "tables_count": true
+  "pdf_processor_cfg": {
+    "extract_tables_from_pdf": false,
+    "extract_images_from_pdf": false
+  },
+  "postprocessor_cfg":{
+    "threshold":0.99
+  },
+  "forcer_cfg":{
+    "n_tokens_min_thr" : 100,
+    "n_numbers_min_thr" : 15
   },
   "types": ["json", "csv", "pickle", "tensorflow"],
   "vocabs": [
-    {"name":"" ,"path": "", "type": ""}
+    {"name":"class_keywords" ,"path": "pipeline/artifacts/vocabs/class_keywords.json", "type": "json"},
+    {"name":"negative_tokens" ,"path": "pipeline/artifacts/vocabs/negative_tokens.json", "type": "json"}
   ],
   "artifacts": [
-    {"name":"classifier" ,"path": "pipeline/artifacts/models/component_categorization", "type": "text-classification"}
+    {"name":"classifier" ,"path": "pipeline/artifacts/models/component_categorization/deberta_v2_only_components_v0", "type": "text-classification"},
+    {"name":"classifier_non_datasheet_supported" ,"path": "pipeline/artifacts/models/component_categorization/deberta_v2_non_datasheet_supported", "type": "text-classification"}
   ],
   "threshold": 0.5
 }
