@@ -54,7 +54,7 @@ class IkidoTextCleaner(DS_Object):
 
     def clean_text(self,text:str=''):
         self.reset()
-        self.urls = RegexHandler.get_urls(text , unique=True)
+        self.urls = self.find_urls(text, unique=True)
         self.raw_text =  RegexHandler.remove_non_printable_chars(text)
         self.tokens = self.raw_text.split()
         self.lines = text.split('\n')
@@ -70,3 +70,13 @@ class IkidoTextCleaner(DS_Object):
                 self.lines_normalized.append(line)
               
         self.text_cleaned = '\n'.join(self.lines_normalized)
+
+    def find_urls(self, text, unique=False):
+
+        url_pattern = r"(?i)\b(?:https?://|www\.)?\S+\.(?:com|org|uk|net|gov|edu|mil|io|info|biz|co|xyz|tv|me|name|us|ca|eu|au|asia|local)\b"
+        re_url = re.compile(url_pattern)
+        urls = re_url.findall(text)
+        urls = [url for url in urls if url[0] != '']
+        if unique:
+            urls = list(sorted(set(urls)))
+        return urls

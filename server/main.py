@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
 from gaiaframework.base.server.server import DS_Server
-from gaiaframework.base.server.output_logger import OutputLogger
+from gaiaframework.base.common.output_logger import OutputLogger
 
 from pipeline.pipeline import IkidoClassifierPipeline
 from pipeline.schema.inputs import IkidoClassifierInputs
@@ -23,17 +23,15 @@ from tester.general_tester import IkidoClassifierGeneralTester
 ## Initialized a pipeline for /predict /parse endpoints.
 pipeline = IkidoClassifierPipeline()
 
-# Initialize logger classes
-parse_logger = OutputLogger('parse')
-predict_logger = OutputLogger('predict')
-
 # Initialize a tester
 model_tester = IkidoClassifierGeneralTester()
 
 class Server(DS_Server):
 
-    def __init__(self, debug=False):
-        self.debug = debug
+    def __init__(self, log_level=None):
+        # Initialize logger classes
+        self.parse_logger = OutputLogger('parse')
+        self.predict_logger = OutputLogger('predict')
         self.mysql_creds = {
             'host': "localhost",
             'username': "gaia",
@@ -48,7 +46,7 @@ class Server(DS_Server):
         # verify_company_token=True will try to fetch company from gaia db using token
         # 'GAIA-AI-TOKEN' in headers or 'Authorization': f'Bearer {gaia_api_token}'
         # in order for it to work you must connect to mysql first using self.mysql_connect
-        super().__init__(x_token="your-x-token", verify_x_token=False, verify_company_token=False, debug=self.debug)
+        super().__init__(x_token="your-x-token", verify_x_token=False, verify_company_token=False, log_level=log_level)
         self.router.add_api_route("/predict", self.predict, methods=["POST"], dependencies=self.baseDependencies + [])
         self.router.add_api_route("/parse", self.parse, methods=["POST"], dependencies=self.baseDependencies + [])
         self.router.add_api_route("/chat", self.chat, methods=["POST"], dependencies=self.baseDependencies + [])
@@ -80,24 +78,24 @@ class Server(DS_Server):
         host, service_account = self.extract_host_and_service_account(request)
         data = body.dict()
         self.cache_facade.get_request_data(data, host, service_account)
-        predict_logger.save_request_info(data, host, service_account)
+        self.predict_logger.save_request_info(data, host, service_account)
 
         output = self.cache_facade.get('--- REPLACE WITH KEYWORD FOR FINDING KEYS INSIDE THE INPUT (data) ---')
         if len(output) > 0:
-            predict_logger.log_output_company(output, 'cache', company=self.company)
+            self.predict_logger.log_output_company(output, 'cache', company=self.company)
             return output
         try:
             tic = time.perf_counter()
             output: Union[IkidoClassifierOutputs, List[IkidoClassifierOutputs]] = pipeline.execute(**data)  # call model here
             pipeline_timing = f"{time.perf_counter() - tic:0.6f}"
-            predict_logger.log_output_company(output,
+            self.predict_logger.log_output_company(output,
                                       company=self.company,
                                       pipeline_timing=pipeline_timing,
                                       predictable_object_count=len(output) if isinstance(output, list) else 1)
             self.cache_facade.set(output)
         except Exception as ex:
             output = {'error': {'request': str(ex)}}
-            predict_logger.exception("ERROR predict invoked",
+            self.predict_logger.exception("ERROR predict invoked",
                              extra=dict(input=data, output=output, from_host=host, from_service_account=service_account))
         return output
 
@@ -112,11 +110,11 @@ class Server(DS_Server):
         # call model here
         try:
             output: Union[IkidoClassifierOutputs, List[IkidoClassifierOutputs]] = pipeline.execute(**data)
-            parse_logger.info("INFO parse invoked", extra={"input": data, "output": output.dict()})
+            self.parse_logger.info("INFO parse invoked", extra={"input": data, "output": output.dict()})
         except Exception as ex:
-            parse_logger.exception(msg=data, exc_info=True)
+            self.parse_logger.exception(msg=data, exc_info=True)
             output = {'error': {'request': ex}}
-            parse_logger.error("ERROR parse invoked", extra={"input": data, "output": output})
+            self.parse_logger.error("ERROR parse invoked", extra={"input": data, "output": output})
         # call model here
         return output
     async def chat(self, body: IkidoClassifierInputs, request: Request) -> StreamingResponse:
@@ -166,8 +164,7 @@ class Server(DS_Server):
 
 ## Instantiate FastAPI()
 app = FastAPI()
-debug = False
-server = Server(debug=debug)
+server = Server(log_level="DEBUG")
 
 ## Allowed cors origins
 origins = server.load_allowed_cors_origins()

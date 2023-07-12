@@ -1,12 +1,14 @@
 import pandas as pd
 import os
 import json
+import asyncio
+import concurrent.futures
 
-from gaiaframework.base.server.output_logger import OutputLogger
 from pipeline.pipeline import IkidoClassifierPipeline
 from pipeline.schema import IkidoClassifierInputs
 
-logger = OutputLogger('prep_data_for_training')
+from common.output_logger import OutputLogger
+logger = OutputLogger('prep_data_for_training info', log_level='INFO')
 
 class PrepDataForTrainer:
     debug=False
@@ -79,7 +81,7 @@ class PrepDataForTrainer:
             logger.info('remove_duplicate', {"df": df})
         return df
 
-    def run_preprocess(self, df, steps=None, stop=None, cache_file_name='cache_train.csv'):
+    def run_preprocess(self, df, steps=None, stop=None, start_from=None, cache_file_name='cache_train.csv'):
         all_datasheet = df['datasheet'].to_list()
         d = [{'pdf_datasheet_url': k} for k in all_datasheet]
         pipeline = IkidoClassifierPipeline()
@@ -87,15 +89,19 @@ class PrepDataForTrainer:
             steps = 5
         if stop == None:
             stop = len(d)
+        if start_from == None:
+            start_from = 0
         columns = None
         features = None
         train_df = None
-        for i in range(0, len(d), steps):
+        for i in range(start_from, len(d), steps):
             if i >= stop:
                 break
             delta = steps if i + steps < len(d) else len(d)
             chunk = d[i:i + delta]
             inputs = IkidoClassifierInputs(inputs=chunk)
+            if self.debug:
+                logger.info('run_pipeline', {"inputs": inputs})
             predictables = pipeline.preprocessor.preprocess(raw_input=inputs)
             for j, p in enumerate(predictables):
                 count = i + j
@@ -116,7 +122,68 @@ class PrepDataForTrainer:
             if self.debug:
                 logger.info('run_pipeline', {"train_df": train_df})
         return train_df
+    async def run_preprocess_parallel(self, df, steps=None, stop=None, start_from=None, cache_file_name='cache_train.csv'):
+        all_datasheet = df['datasheet'].to_list()
+        d = [{'pdf_datasheet_url': k} for k in all_datasheet]
+        pipeline = IkidoClassifierPipeline()
+        if steps == None:
+            steps = 5
+        if stop == None:
+            stop = len(d)
+        if start_from == None:
+            start_from = 0
+        columns = None
+        features = None
+        train_df = None
 
+        for i in range(start_from, len(d), steps):
+            tasks = []
+            if i >= stop:
+                break
+            delta = steps
+            if i + steps >= len(d):
+                delta = len(d)
+            elif i + delta > stop:
+                delta = stop - i
+            print('delta', delta)
+            print('i', i)
+            # delta = steps if i + steps < len(d) else len(d)
+            chunk = d[i:i + delta]
+            for c in chunk:
+                inputs = IkidoClassifierInputs(inputs=[c])
+                if self.debug:
+                    logger.info('run_pipeline', {"inputs": inputs})
+                tasks.append(self.generic_task(pipeline, inputs))
+
+            results = await asyncio.gather(*tasks)
+            # print('results', results)
+            for j, predictables in enumerate(results):
+                for p in predictables:
+                    count = i + j
+                    if self.debug:
+                        logger.info('run_pipeline', {"count": count})
+                    if features == None:
+                        features = list(p.features.__dict__.keys())
+                        columns = list(df.columns)
+                        train_df = pd.DataFrame(columns=columns + features)
+                    row = []
+                    for c in columns:
+                        row.append(df.iloc[i + j][c])
+                    for f in features:
+                        row.append(p.features.__dict__[f])
+                    train_df.loc[len(train_df)] = row
+                    if count % 10 == 0:
+                        self.save_df(train_df, f'{self.output_folder}/{cache_file_name}')
+                if self.debug:
+                    logger.info('run_pipeline', {"train_df": train_df})
+        print('train_df', len(train_df))
+        self.train_df = train_df
+        return train_df
+
+    async def generic_task(self, pipeline, inputs) -> dict:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            predictables = await asyncio.get_running_loop().run_in_executor(executor, pipeline.preprocessor.preprocess, inputs)
+        return predictables
     def save_df(self, df, folder):
         save_path = os.path.join(self.base_dir, folder)
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -133,5 +200,8 @@ class PrepDataForTrainer:
         elif load_path.endswith('.xlsx'):
             df = pd.read_excel(load_path)
         return df
+
+    async def run_preprocess_steps_parallel(self, df, steps=None, stop=None, start_from=None, cache_file_name='cache_train_parallel.csv'):
+        await self.run_preprocess_parallel(df=df, steps=steps, stop=stop, start_from=start_from, cache_file_name=cache_file_name)
 
 
