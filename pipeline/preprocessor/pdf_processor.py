@@ -65,6 +65,7 @@ class IkidoPdfProcessor(DS_Object):
                                 pix = fitz.Pixmap(fitz.csRGB, pix)
                             self.image_list.append(pix)
                     self.logger.debug('end get images')
+
             if self.cfg.get('extract_tables_from_pdf', False):
                 self.logger.debug('start get table_list')
                 self.table_list = tabula.read_pdf(url, pages='all', multiple_tables=True, stream=True)
